@@ -83,6 +83,9 @@ function prepareBundleStaging() {
       name: "mivtuberia-tauri-runtime",
       version: projectPackage.version || "0.1.0",
       type: "module",
+      allowScripts: {
+        "better-sqlite3": true
+      },
       dependencies
     }, null, 2),
     "utf8"
@@ -108,6 +111,14 @@ function prepareBundleStaging() {
     console.error(`[tauri-bundle] npm install failed with status ${install.status}.`);
     process.exit(install.status || 1);
   }
+
+  const sqliteBinding = join(bundleStagingDir, "node_modules", "better-sqlite3", "build", "Release", "better_sqlite3.node");
+  if (!existsSync(sqliteBinding)) {
+    console.error("[tauri-bundle] better-sqlite3 native binding missing after install. The backend will crash at runtime.");
+    console.error("[tauri-bundle] Ensure node-gyp or prebuild-install can run during npm install, or copy the binding manually.");
+    process.exit(1);
+  }
+  console.log(`[tauri-bundle] better-sqlite3 native binding verified: ${sqliteBinding}`);
 
   for (const scriptName of bundledRuntimeScripts) {
     const from = join(rootDir, "scripts", scriptName);
